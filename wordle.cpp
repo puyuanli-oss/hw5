@@ -25,6 +25,7 @@ std::set<std::string> wordle(
 
 }
 */
+/*
 // Define any helper functions here
 #ifndef RECCHECK
 // For debugging
@@ -104,5 +105,93 @@ std::set<std::string> wordle(
     set<string> answers;
     string cur = in;
     wordleHelper(cur, 0, floating, dict, answers);
+    return answers;
+}*/
+#include <set>
+#include <string>
+#include <vector>
+
+#include "wordle.h"
+#include "dict-eng.h"
+
+using namespace std;
+
+static void wordleHelper(string& cur,
+                         int pos,
+                         int blanksLeft,
+                         vector<int>& floatingCount,
+                         int floatingLeft,
+                         const set<string>& dict,
+                         set<string>& answers)
+{
+    if (floatingLeft > blanksLeft) {
+        return;
+    }
+
+    if (pos == static_cast<int>(cur.size())) {
+        if (floatingLeft == 0 && dict.find(cur) != dict.end()) {
+            answers.insert(cur);
+        }
+        return;
+    }
+
+    if (cur[pos] != '-') {
+        wordleHelper(cur, pos + 1, blanksLeft, floatingCount, floatingLeft, dict, answers);
+        return;
+    }
+
+    const bool mustUseFloating = (floatingLeft == blanksLeft);
+
+    for (char c = 'a'; c <= 'z'; ++c) {
+        int idx = c - 'a';
+
+        if (mustUseFloating && floatingCount[idx] == 0) {
+            continue;
+        }
+
+        cur[pos] = c;
+
+        bool usedFloating = false;
+        if (floatingCount[idx] > 0) {
+            floatingCount[idx]--;
+            usedFloating = true;
+        }
+
+        wordleHelper(cur,
+                     pos + 1,
+                     blanksLeft - 1,
+                     floatingCount,
+                     floatingLeft - (usedFloating ? 1 : 0),
+                     dict,
+                     answers);
+
+        if (usedFloating) {
+            floatingCount[idx]++;
+        }
+    }
+
+    cur[pos] = '-';
+}
+
+set<string> wordle(const string& in,
+                   const string& floating,
+                   const set<string>& dict)
+{
+    set<string> answers;
+    string cur = in;
+
+    vector<int> floatingCount(26, 0);
+    for (char c : floating) {
+        floatingCount[c - 'a']++;
+    }
+
+    int blanksLeft = 0;
+    for (char c : in) {
+        if (c == '-') {
+            blanksLeft++;
+        }
+    }
+
+    wordleHelper(cur, 0, blanksLeft, floatingCount, static_cast<int>(floating.size()), dict, answers);
     return answers;
 }
