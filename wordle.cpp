@@ -39,10 +39,10 @@ std::set<std::string> wordle(
 #include "dict-eng.h"
 using namespace std;
 
-bool containsFloating(const std::string& word,
+static bool containsFloating(const std::string& word,
                       const std::string& floating);
 
-void wordleHelper(std::string& cur,
+static void wordleHelper(std::string& cur,
                   int pos,
                   const std::string& floating,
                   const std::set<std::string>& dict,
